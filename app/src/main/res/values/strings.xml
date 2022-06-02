@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Stores</string>
+    <string name="description_img_photo">Imagen de la tienda</string>
+    <string name="description_store_add">Agregar una tienda</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="hint_name">nombre de la tienda</string>
+    <string name="helper_required">Requerido</string>
+    <string name="hint_phone">telefono</string>
+    <string name="hint_website">url del sitio web</string>
+    <string name="hint_phone_url">url de la imagen</string>
+    <string name="edit_store_title_add">Crear tienda</string>
+    <string name="menu_save">save</string>
+    <string name="edit_store_message_save_success">Tienda agregada correctamente</string>
+    <string name="arg_id">key_id</string>
+</resources>
