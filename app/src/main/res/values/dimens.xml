@@ -6,4 +6,6 @@
     <dimen name="card_img_cover_height">160dp</dimen>
     <dimen name="common_padding_middle">24dp</dimen>
     <dimen name="photo_size_thumb">88dp</dimen>
+    <dimen name="padding_null">0dp</dimen>
+    <dimen name="common_padding_minimus">4dp</dimen>
 </resources>

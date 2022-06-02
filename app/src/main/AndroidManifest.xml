@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.stores">
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:name=".StoreApplication"
@@ -21,4 +22,14 @@
         </activity>
     </application>
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.DIAL"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+            <category android:name="android.intent.category.BROWSABLE" />
+        </intent>
+    </queries>
 </manifest>

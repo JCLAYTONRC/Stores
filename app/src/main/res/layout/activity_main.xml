@@ -37,7 +37,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:paddingTop="@dimen/padding_null"
+        android:paddingEnd="@dimen/padding_null"
+        android:paddingStart="@dimen/padding_null"
+        android:paddingBottom="@dimen/common_padding_min"
+        android:clipToPadding="false"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
