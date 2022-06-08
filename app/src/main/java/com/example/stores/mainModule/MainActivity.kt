@@ -1,48 +1,67 @@
-package com.example.stores
+package com.example.stores.mainModule
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.stores.*
+import com.example.stores.common.entities.StoreEntity
+import com.example.stores.common.utils.MainAux
 import com.example.stores.databinding.ActivityMainBinding
+import com.example.stores.editModule.EditStoreFragment
+import com.example.stores.editModule.viewModel.EditStoreViewModel
+import com.example.stores.mainModule.adapter.OnClickListener
+import com.example.stores.mainModule.adapter.StoreAdapter
+import com.example.stores.mainModule.viewModel.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
-import java.sql.RowId
 
-class MainActivity : AppCompatActivity(), OnClickListener,MainAux {
+class MainActivity : AppCompatActivity(), OnClickListener{
 
    private lateinit var mBinding: ActivityMainBinding
 
    private lateinit var mAdapter: StoreAdapter
    private lateinit var mGrideLayout: GridLayoutManager
 
+   //MVVM
+   private lateinit var mMainViewModel: MainViewModel
+   private lateinit var mEditStoreViewModel: EditStoreViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(mBinding.root)
 
-       /* mBinding.btnSave.setOnClickListener {
-            val store = StoreEntity(name = mBinding.etName.text.toString().trim())
-
-            Thread{
-                StoreApplication.database.storeDao().addStore(store)
-            }.start()
-
-            mAdapter.add(store)
-        }*/
-
         mBinding.fab.setOnClickListener { lauchEditFragment() }
-
+        setupViewModel()
         setupRecylerView()
     }
 
-    private fun lauchEditFragment(args : Bundle? = null) {
+    private fun setupViewModel() {
+        mMainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        mMainViewModel.getStores().observe(this,{ stores ->
+            mAdapter.setStores(stores)
+        })
+
+        mEditStoreViewModel = ViewModelProvider(this).get(EditStoreViewModel::class.java)
+        mEditStoreViewModel.getShowFab().observe(this,{
+            isVisible ->
+            if(isVisible) mBinding.fab.show() else mBinding.fab.hide()
+        })
+        mEditStoreViewModel.getStoreSelected().observe(this,{ storeEntity ->
+            mAdapter.add(storeEntity)
+        })
+    }
+
+    private fun lauchEditFragment(storeEntity: StoreEntity = StoreEntity()) {
+
+        mEditStoreViewModel.setShowFab(false)
+        mEditStoreViewModel.setStoreSelected(storeEntity)
         val fragment = EditStoreFragment()
-        if(args != null) fragment.arguments = args
 
         val fragmentManager = supportFragmentManager
         val fragmentransaction = fragmentManager.beginTransaction()
@@ -50,13 +69,11 @@ class MainActivity : AppCompatActivity(), OnClickListener,MainAux {
         fragmentransaction.add(R.id.containerMain, fragment)
         fragmentransaction.commit()
         fragmentransaction.addToBackStack(null)
-        hidefab()
     }
 
     private fun setupRecylerView() {
-        mAdapter = StoreAdapter(mutableListOf(),this)
-        mGrideLayout = GridLayoutManager(this,resources.getInteger(R.integer.main_colums))
-        getStores()
+        mAdapter = StoreAdapter(mutableListOf(), this)
+        mGrideLayout = GridLayoutManager(this, resources.getInteger(R.integer.main_colums))
 
         mBinding.recyclerView.apply {
             setHasFixedSize(true)
@@ -65,36 +82,19 @@ class MainActivity : AppCompatActivity(), OnClickListener,MainAux {
         }
     }
 
-    private fun getStores(){
-        doAsync {
-            val stores = StoreApplication.database.storeDao().getAllStores()
-            uiThread {
-                mAdapter.setStores(stores)
-            }
-        }
-    }
 
 
 
     /*
     *OnClickListener
     * */
-    override fun onClick(storeId: Long) {
-        val args = Bundle()
-        args.putLong(getString(R.string.arg_id),storeId)
-
-        lauchEditFragment(args)
+    override fun onClick(storeEntity: StoreEntity) {
+        lauchEditFragment(storeEntity)
 
     }
 
     override fun onFavoriteStore(storeEntity: StoreEntity) {
-        storeEntity.isFavorite = !storeEntity.isFavorite
-        doAsync {
-            StoreApplication.database.storeDao().updateStore(storeEntity)
-            uiThread {
-                updateStore(storeEntity)
-            }
-        }
+        mMainViewModel.updateStore(storeEntity)
     }
 
     override fun onDeleteStore(storeEntity: StoreEntity) {
@@ -119,12 +119,7 @@ class MainActivity : AppCompatActivity(), OnClickListener,MainAux {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.dialog_alert_delete)
             .setPositiveButton(R.string.dialog_delete_confirm,{ dialogInterface, i ->
-                doAsync {
-                    StoreApplication.database.storeDao().deleteStore(storeEntity)
-                    uiThread {
-                        mAdapter.delete(storeEntity)
-                    }
-                }
+                mMainViewModel.deleteStore(storeEntity)
             })
             .setNegativeButton(R.string.dialog_alert_cancel,null)
             .show()
@@ -141,7 +136,7 @@ class MainActivity : AppCompatActivity(), OnClickListener,MainAux {
 
     private fun gotoWebSite(webSite:String){
         if(webSite.isEmpty()){
-            Toast.makeText(this,R.string.main_error_no_website,Toast.LENGTH_LONG).show()
+            Toast.makeText(this, R.string.main_error_no_website, Toast.LENGTH_LONG).show()
         }else{
             val webSiteIntent = Intent().apply {
                 action = Intent.ACTION_VIEW
@@ -154,19 +149,9 @@ class MainActivity : AppCompatActivity(), OnClickListener,MainAux {
         if(intent.resolveActivity(packageManager) != null)
             startActivity(intent)
         else
-            Toast.makeText(this,R.string.main_error_no_resolve,Toast.LENGTH_LONG).show()
+            Toast.makeText(this, R.string.main_error_no_resolve, Toast.LENGTH_LONG).show()
     }
 
+//
 
-    override fun hidefab(isVisible: Boolean) {
-        if(isVisible) mBinding.fab.show() else mBinding.fab.hide()
-    }
-
-    override fun addStore(storeEntity: StoreEntity) {
-        mAdapter.add(storeEntity)
-    }
-
-    override fun updateStore(storeEntity: StoreEntity) {
-        mAdapter.update(storeEntity)
-    }
 }
