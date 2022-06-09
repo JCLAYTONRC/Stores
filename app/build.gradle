@@ -58,6 +58,12 @@ dependencies {
     // ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
 
+    //Volley
+    implementation 'com.android.volley:volley:1.1.1'
+
+    //Gson
+    implementation 'com.google.code.gson:gson:2.9.0'
+
 
     implementation 'com.github.bumptech.glide:glide:4.13.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.13.0'
