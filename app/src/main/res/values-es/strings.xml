@@ -23,4 +23,9 @@
     <string name="main_error_no_resolve">No se encontro una app compatible</string>
     <string name="options_item_call">Llamar</string>
     <string name="options_item_website">Ir al Sitio Web</string>
+    <string name="main_error_get">Error al consultar datos.</string>
+    <string name="main_error_insert">Error al insertar datos.</string>
+    <string name="main_error_update">Error al actualizar datos.</string>
+    <string name="main_error_delete">Error al eliminar datos.</string>
+    <string name="main_error_unknow">Error desconocido</string>
 </resources>

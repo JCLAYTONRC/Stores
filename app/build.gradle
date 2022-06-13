@@ -41,7 +41,6 @@ android {
 dependencies {
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    def anko_version = "0.10.8"
     def lifecycle_version = "2.2.0"
 
     implementation 'androidx.core:core-ktx:1.7.0'
@@ -54,7 +53,7 @@ dependencies {
     implementation("androidx.room:room-runtime:2.4.2")
     kapt "androidx.room:room-compiler:2.4.2"
 
-    implementation "org.jetbrains.anko:anko-commons:$anko_version"
+
     // ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
 
@@ -63,6 +62,13 @@ dependencies {
 
     //Gson
     implementation 'com.google.code.gson:gson:2.9.0'
+
+    //Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1'
+
+    //LiveData
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.0'
+    implementation "androidx.room:room-ktx:2.4.2"
 
 
     implementation 'com.github.bumptech.glide:glide:4.13.0'

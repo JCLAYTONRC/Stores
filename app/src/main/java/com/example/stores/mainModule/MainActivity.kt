@@ -10,19 +10,21 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.stores.*
 import com.example.stores.common.entities.StoreEntity
+import com.example.stores.common.utils.TypeError
 import com.example.stores.databinding.ActivityMainBinding
 import com.example.stores.editModule.EditStoreFragment
 import com.example.stores.editModule.viewModel.EditStoreViewModel
 import com.example.stores.mainModule.adapter.OnClickListener
-import com.example.stores.mainModule.adapter.StoreAdapter
+import com.example.stores.mainModule.adapter.StoreListAdapter
 import com.example.stores.mainModule.viewModel.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity(), OnClickListener{
 
    private lateinit var mBinding: ActivityMainBinding
 
-   private lateinit var mAdapter: StoreAdapter
+   private lateinit var mAdapter: StoreListAdapter
    private lateinit var mGrideLayout: GridLayoutManager
 
    //MVVM
@@ -42,11 +44,24 @@ class MainActivity : AppCompatActivity(), OnClickListener{
     private fun setupViewModel() {
         mMainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
         mMainViewModel.getStores().observe(this,{ stores ->
-            mAdapter.setStores(stores)
+            mBinding.progressBar.visibility = View.GONE
+                mAdapter.submitList(stores)
             //mBinding.progressBar.visibility = if(stores.size == 0) View.VISIBLE else View.GONE
         mMainViewModel.isShowProgress().observe(this,{ isShowProgress ->
             mBinding.progressBar.visibility = if(isShowProgress) View.VISIBLE else View.GONE
         })
+        })
+
+        mMainViewModel.getTypeError().observe(this,{ typeError ->
+            val msgRes = when(typeError){
+                TypeError.GET -> getString(R.string.main_error_get)
+                TypeError.INSERT -> getString(R.string.main_error_insert)
+                TypeError.UPDATE -> getString(R.string.main_error_update)
+                TypeError.DELETE -> getString(R.string.main_error_delete)
+
+                else -> getString(R.string.main_error_unknow)
+            }
+            Snackbar.make(mBinding.root,msgRes,Snackbar.LENGTH_SHORT).show()
         })
 
         mEditStoreViewModel = ViewModelProvider(this).get(EditStoreViewModel::class.java)
@@ -54,9 +69,7 @@ class MainActivity : AppCompatActivity(), OnClickListener{
             isVisible ->
             if(isVisible) mBinding.fab.show() else mBinding.fab.hide()
         })
-        mEditStoreViewModel.getStoreSelected().observe(this,{ storeEntity ->
-            mAdapter.add(storeEntity)
-        })
+
     }
 
     private fun lauchEditFragment(storeEntity: StoreEntity = StoreEntity()) {
@@ -74,7 +87,7 @@ class MainActivity : AppCompatActivity(), OnClickListener{
     }
 
     private fun setupRecylerView() {
-        mAdapter = StoreAdapter(mutableListOf(), this)
+        mAdapter = StoreListAdapter( this)
         mGrideLayout = GridLayoutManager(this, resources.getInteger(R.integer.main_colums))
 
         mBinding.recyclerView.apply {
@@ -82,6 +95,12 @@ class MainActivity : AppCompatActivity(), OnClickListener{
             layoutManager = mGrideLayout
             adapter = mAdapter
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        mEditStoreViewModel.setShowFab(true)
+
     }
 
 
@@ -104,15 +123,15 @@ class MainActivity : AppCompatActivity(), OnClickListener{
 
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.dialog_optios_title)
-            .setItems(items,  { dialogInterface, i ->
-                when (i){
+            .setItems(items) { _, i ->
+                when (i) {
                     0 -> confirmDelete(storeEntity)
 
                     1 -> dial(storeEntity.phone)
 
                     2 -> gotoWebSite(storeEntity.website)
                 }
-            })
+            }
             .show()
 
     }
@@ -120,9 +139,9 @@ class MainActivity : AppCompatActivity(), OnClickListener{
     private fun confirmDelete(storeEntity: StoreEntity){
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.dialog_alert_delete)
-            .setPositiveButton(R.string.dialog_delete_confirm,{ dialogInterface, i ->
+            .setPositiveButton(R.string.dialog_delete_confirm) { _, _ ->
                 mMainViewModel.deleteStore(storeEntity)
-            })
+            }
             .setNegativeButton(R.string.dialog_alert_cancel,null)
             .show()
     }

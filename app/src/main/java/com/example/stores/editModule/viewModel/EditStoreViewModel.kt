@@ -3,27 +3,35 @@ package com.example.stores.editModule.viewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.stores.common.entities.StoreEntity
+import com.example.stores.common.utils.StoresException
+import com.example.stores.common.utils.TypeError
 import com.example.stores.editModule.model.EditStoreInteractor
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class EditStoreViewModel: ViewModel() {
-
-    private val storeSelected = MutableLiveData<StoreEntity>()
+    private var storeId: Long = 0
     private val showFab = MutableLiveData<Boolean>()
     private val result = MutableLiveData<Any>()
 
-    private val interactor : EditStoreInteractor
+    private val interactor : EditStoreInteractor = EditStoreInteractor()
+    private val typeError : MutableLiveData<TypeError> = MutableLiveData()
 
-    init {
-        interactor = EditStoreInteractor()
+
+    fun setTypeError(typeError: TypeError){
+        this.typeError.value = typeError
     }
 
+    fun getTypeError(): MutableLiveData<TypeError> = typeError
+
     fun setStoreSelected(storeEntity: StoreEntity){
-        storeSelected.value = storeEntity
+        storeId = storeEntity.id
     }
 
     fun getStoreSelected(): LiveData<StoreEntity>{
-        return storeSelected
+        return interactor.getStoreById(storeId)
     }
 
     fun setShowFab(isVisible: Boolean){
@@ -43,15 +51,22 @@ class EditStoreViewModel: ViewModel() {
     }
 
     fun saveStore(storeEntity: StoreEntity){
-        interactor.saveStore(storeEntity,{
-            newId ->
-            result.value = newId
-        })
+        executeAction(storeEntity) { interactor.saveStore(storeEntity) }
     }
 
     fun updateStore(storeEntity: StoreEntity){
-        interactor.updateStore(storeEntity,{ storeUpdated ->
-            result.value = storeUpdated
-        })
+        executeAction(storeEntity) { interactor.updateStore(storeEntity) }
+    }
+
+    private fun executeAction(storeEntity:StoreEntity, block: suspend () -> Unit) : Job {
+        return  viewModelScope.launch {
+
+            try{
+                block()
+                result.value = storeEntity
+            } catch (e: StoresException){
+                typeError.value = e.typeError
+            }
+        }
     }
 }
